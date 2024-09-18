@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSV Fetch and Parse</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .loading-message {
+      font-size: 1.2em;
+      color: #555;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .filter-section {
+      margin-bottom: 20px;
+    }
+    .total-matches-column {
+      background-color: #ffeeba;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Last 60 Days - Number of Matches Per Map with Player Count Breakdown</h1>
+
+  <div class="filter-section">
+    <label for="gameTypeSelect">Filter by Game Type:</label>
+    <select id="gameTypeSelect">
+      <option value="all">All Game Types</option>
+    </select>
+  </div>
+
+  <div id="loadingMessage" class="loading-message">Loading and processing data, please wait...</div>
+  
+  <table id="mapPlayerTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>Map</th>
+        <th class="total-matches-column">Number of Matches</th>
+        <!-- Player count columns will be added dynamically -->
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data rows will be inserted here -->
+    </tbody>
+  </table>
+
+  <script>
+    let matchData = [];
+    let playerData = [];
+    let filteredGameType = 'all';
+
+    async function fetchAndParseCSV(url, callback) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const decompressed = pako.ungzip(new Uint8Array(arrayBuffer), { to: 'string' });
+
+        Papa.parse(decompressed, {
+          header: true,
+          complete: (result) => {
+            callback(result.data);
+          },
+          error: (error) => {
+            console.error('Error parsing CSV:', error);
+            document.body.insertAdjacentHTML('beforeend', `<p>Error parsing CSV: ${error.message}</p>`);
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching or processing data:', error);
+        document.body.insertAdjacentHTML('beforeend', `<p>Error fetching or processing data: ${error.message}</p>`);
+      }
+    }
+
+    function filterDataByDate(data) {
+      const sixtyDaysAgo = new Date();
+      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+      
+      return data.filter(row => {
+        const gameDate = new Date(row.start_time);
+        return gameDate >= sixtyDaysAgo;
+      });
+    }
+
+    function filterDataByGameType(data) {
+      if (filteredGameType === 'all') return data;
+      return data.filter(row => row.game_type === filteredGameType);
+    }
+
+    function combineData(matches, players) {
+      const matchPlayerMap = {};
+      
+      players.forEach(player => {
+        const matchId = player.match_id;
+        if (!matchPlayerMap[matchId]) {
+          matchPlayerMap[matchId] = { map: null, playerCount: 0 };
+        }
+        matchPlayerMap[matchId].playerCount++;
+      });
+
+      matches.forEach(match => {
+        const matchId = match.match_id;
+        if (matchPlayerMap[matchId]) {
+          matchPlayerMap[matchId].map = match.map;
+        }
+      });
+
+      return matchPlayerMap;
+    }
+
+    function countGamesByMap(mapPlayerMap) {
+      const mapCounts = {};
+      const playerCounts = new Set();
+
+      Object.values(mapPlayerMap).forEach(({ map, playerCount }) => {
+        if (!map) return; // Skip if map is not set
+        playerCounts.add(playerCount);
+        if (!mapCounts[map]) {
+          mapCounts[map] = { totalMatches: 0 };
+          // Initialize counts for each player count
+          playerCounts.forEach(count => {
+            mapCounts[map][`gamesWith${count}Players`] = 0;
+          });
+        }
+        mapCounts[map].totalMatches++;
+        mapCounts[map][`gamesWith${playerCount}Players`] = (mapCounts[map][`gamesWith${playerCount}Players`] || 0) + 1;
+      });
+
+      return { mapCounts, playerCounts: Array.from(playerCounts) };
+    }
+
+    function populateGameTypeSelect(matches) {
+      const gameTypes = new Set(matches.map(match => match.game_type));
+      const gameTypeSelect = document.getElementById('gameTypeSelect');
+      
+      gameTypes.forEach(gameType => {
+        const option = document.createElement('option');
+        option.value = gameType;
+        option.textContent = gameType;
+        gameTypeSelect.appendChild(option);
+      });
+    }
+
+    function displayTable(mapCounts, playerCounts) {
+      const tableBody = document.getElementById('mapPlayerTable').getElementsByTagName('tbody')[0];
+      const tableHead = document.getElementById('mapPlayerTable').getElementsByTagName('thead')[0];
+
+      // Sort player counts in descending order
+      playerCounts.sort((a, b) => b - a);
+      
+      tableHead.innerHTML = `<tr>
+        <th>Map</th>
+        <th class="total-matches-column">Number of Matches</th>
+        ${playerCounts.map(count => `<th>Games with ${count} Players</th>`).join('')}
+      </tr>`;
+
+      tableBody.innerHTML = ''; // Clear any existing rows
+
+      // Convert the mapCounts object to an array of [map, count] pairs
+      const countArray = Object.entries(mapCounts);
+      
+      // Sort the array by totalMatches in descending order
+      countArray.sort((a, b) => b[1].totalMatches - a[1].totalMatches);
+
+      // Create table rows for each map, match count, and player count breakdown
+      countArray.forEach(([map, counts]) => {
+        const row = document.createElement('tr');
+        const mapCell = document.createElement('td');
+        const matchesCell = document.createElement('td');
+
+        mapCell.textContent = map;
+        matchesCell.textContent = counts.totalMatches;
+        matchesCell.classList.add('total-matches-column'); // Apply custom class for styling
+
+        row.appendChild(mapCell);
+        row.appendChild(matchesCell);
+
+        // Add cells for each player count, in descending order
+        playerCounts.forEach(count => {
+          const cell = document.createElement('td');
+          cell.textContent = counts[`gamesWith${count}Players`] || 0;
+          row.appendChild(cell);
+        });
+
+        tableBody.appendChild(row);
+      });
+
+      // Hide loading message and show the table
+      document.getElementById('loadingMessage').style.display = 'none';
+      document.getElementById('mapPlayerTable').style.display = 'table';
+    }
+
+    async function fetchData() {
+      document.getElementById('loadingMessage').style.display = 'block'; // Show loading message
+      document.getElementById('mapPlayerTable').style.display = 'none'; // Hide table initially
+      
+      fetchAndParseCSV('https://data-marts.beyondallreason.dev/matches.csv.gz', (data) => {
+        matchData = filterDataByDate(data); // Filter matches by date
+        populateGameTypeSelect(matchData);  // Populate game type dropdown
+        if (playerData.length) {
+          updateDisplay();
+        }
+      });
+
+      fetchAndParseCSV('https://data-marts.beyondallreason.dev/match_players.csv.gz', (data) => {
+        playerData = data;
+        if (matchData.length) {
+          updateDisplay();
+        }
+      });
+    }
+
+    function updateDisplay() {
+      const filteredMatches = filterDataByGameType(matchData);
+      const combinedData = combineData(filteredMatches, playerData);
+      const { mapCounts, playerCounts } = countGamesByMap(combinedData);
+      displayTable(mapCounts, playerCounts);
+    }
+
+    document.getElementById('gameTypeSelect').addEventListener('change', function() {
+      filteredGameType = this.value;
+      updateDisplay();
+    });
+
+    fetchData();
+  </script>
+</body>
+</html>
