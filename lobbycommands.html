@@ -1,0 +1,220 @@
+!maxratinglevel 12
+!rename
+!list maps
+!map <mapNameOrNumber>
+
+  ============================================
+
+
+
+------------------------
+!commands
+
+!addBot [<name> [<side> <ai>]] - adds a local AI bot (missing parameters are taken from "localBots" preset setting if possible)
+!addBox <left> <top> <right> <bottom> [<teamNumber>] - adds a new start box (0,0 is top left corner, 200,200 is bottom right corner)
+!advert [<newAdvertMessage>] - updates the advert message or disables advert system if no message is provided (lines are separated by '|' character)
+!auth [<password>] - (un)authenticates yourself to the AutoHost (LAN mode only)
+!balance - balances teams according to current balanceMode, nbTeams, teamSize and nbPlayerById parameters
+!ban <usernameOrFilters> [<banType> [<duration> [<reason>]]] - ban a user from AutoHost channel and/or battle and/or game (use ; to separate filters, and ~ at start for regexp)
+!banIp <username>|#<accountId> [<banType> [<duration> [<reason>]]] - ban a user from battle lobby, based on his latest IP (same as doing "!ban ip=<userIp>")
+!banIps <username>|#<accountId> [<banType> [<duration> [<reason>]]] - ban a user from battle lobby, based on all his known IPs (same as doing "!ban ip=<userIp>" for all IPs)
+!bKick <username> - kicks <username> from battle lobby
+!boss [<username>] - enables boss mode for <username> (reduces rights of other non-privilegied users), or disable boss mode if <username> isn't specified
+!bPreset <battlePreset> - changes current battle preset (use "!list bPresets" to list available battle presets)
+!bSet <battleSetting> <newValue> - changes a battle setting manually (use "!list bSettings" to list available settings)
+!callVote <command> - calls a vote to execute command <command> (alias: !cv)
+!cancelQuit - cancels a quit or restart command
+!cheat [0|1|<cheatCommand>] - Enable/disable cheat mode, or execute a cheat command
+!chpasswd <user> [<password>] - (un)sets an AutoHost user password (used when Lobby server is running in LAN mode only)
+!chrank <user> [<rankMode>] - (un)sets an AutoHost user rank mode (used for auto-balancing if skillMode is set to "rank")
+!chskill <user> [<skillMode>] - (un)sets an AutoHost user skill mode (used for auto-balancing)
+!cKick <username> - kicks <username> from channel
+!clearBox [<teamNumber>|extra] - removes the box for team <teamNumber> or all extra teams (removes all boxes if <teamNumber> and "extra" not specified)
+!closeBattle - closes current battle (use "openBattle" command to reopen it)
+!coop <coopIdent> - alias for "!pSet shareId <coopIdent>" (chooses the name of your coop team: only users with same <coopIdent> will share units with you)
+!endVote - cancels current vote
+!fixColors - tries to fix colors automatically
+!force <username> id|team|spec|bonus [number] - forces a player to spec, or sets his id/team/bonus to <number> (for AI bots, <username> can be prefixed with '%' to avoid ambiguity)
+!forcePreset <preset> - changes current global SPADS preset, bypassing the allowed presets list (use "!list presets" to list available presets)
+!forceStart - launches the game even if teams are uneven (but everyone still has to be ready), or forces game start if it is already launched
+!gKick <username> - kicks <username> from game
+!help [<command>|[global|set|hSet|bSet|pSet] <settingName>] - lists allowed commands, or prints detailed help for a specific command or setting
+!helpall - lists all commands
+!hostStats - prints global hosting statistics
+!hPreset <hostingPreset> - changes current hosting preset (use "!list hPresets" to list available hosting presets)
+!hSet <hostingSetting> <newValue> - changes a hosting setting manually (use "list hSettings" to list available hosting settings)
+!joinAs spec|<inGamePlayer>|#<inGameId> [<joiningPlayer>] - allows a user to join the game in progress as spectator or player
+!kick <username> - kicks <username> from channel, battle or game, depending on the way the command is sent to AutoHost
+!kickBan <username> - kicks and bans <username> temporarily from channel, battle and game
+!learnMaps [<mapFilter> [<hostFilter>]] - learns map hashes from other battles (only learns maps matching <mapFilter> and <hostFilters> if specified)
+!list users|presets|bPresets|hPresets|settings|bSettings|hSettings|vSettings|aliases|bans|maps|rotationMaps|pref|plugins|pSettings [all|map|mod|engine|<filters>] - lists various settings
+!loadBoxes [<mapName> [<nbTeams> [<nbExtraBox>]]] - loads start boxes for given map, number of teams and number of extra boxes (use current values if not provided)
+!lock - locks battle lobby
+!map <mapNameOrNumber> - same as "!set map <mapNameOrNumber>" (use "!list maps" to list available maps)
+!mapLink - gives a link to download the current map
+!nextMap - changes map according to rotation mode specified by "rotationManual" setting
+!nextPreset - changes preset according to rotation mode specified by "rotationManual" setting
+!notify - sets/unsets an end-game notification: the AutoHost will notify you when the current game ends
+!openBattle - reopens the battle (battle is open by default)
+!plugin <pluginName> load|unload|reload|reloadConf [keepSettings]|set <param> [<value>] - performs various operations on a plugin
+!preset <globalPreset> - changes current global SPADS preset (use "!list presets" to list available presets)
+!promote - promotes current battle on channel(s) (not in #main since it's forbidden)
+!pSet <preferenceSetting> [<newValue>] - updates a preference (use "!list pref" to list your current preferences)
+!quit [empty|spec] - forces AutoHost to quit (wait end of game, + empty battle if "empty" is specified, or only spec if "spec" is specified)
+!rebalance - rebalances teams (try to change them if they were already balanced)
+!rehost - rehosts battle (needed for hosting settings changes to be applied)
+!reloadArchives [full] - reloads Spring archive files (Mods and maps)
+!reloadConf [keepSettings] [keepMacros] [<macro>=<value> [..]] - reloads all configuration files
+!removeBot <botName> - removes a local AI bot
+!resign [<playerName> [TEAM]] - resigns a player or his entire ally team if "TEAM" parameter is provided
+!restart [empty|spec] [<macro>=<value> [..]] - restarts SPADS (wait game end, and empty battle lobby if "empty" is specified)
+!ring [<username>] - rings all unready players, or ring <username> if <username> is specified
+!saveBoxes - saves map boxes for current map
+!say <message> - sends chat message <message> from lobby to game
+!searchUser <userFilter>|@<ipFilter> - shows main information concerning all known accounts matching <userFilter> or <ipFilter>
+!send <command> - sends command <command> to server on AutoHost interface
+!sendLobby <command> - sends command <command> to lobby server (use quotes or backslash if you need to put spaces in lobby command parameters, similar to shell)
+!set <spadsSetting> <newValue> - changes a SPADS setting manually (use "!list settings" to list available settings)
+!smurfs [<username>|#<accountId>] - finds smurf accounts of players in battle, or those of <name> if specified (requires user data retention)
+!specAfk - Force all unready and AFK/idle players to spec
+!split h|v|c1|c2|c|s <percent> - splits map for starting positions
+!start - launches the game if everyone is ready and teams are even
+!stats - prints statistics for the last game played on the AutoHost
+!status [battle|game] - prints battle or game status (players teams, IDs, status...)
+!stop - forces current running game to stop
+!unban <usernameOrFilters>|(<banEntryHash>) - removes <usernameOrFilters> or <banEntryHash> from banlist (refer to ban command for filters syntax)
+!unbanIp <username>|#<accountId> - removes bans matching current account IP from banlist (same as doing "!unban ip=<userIp>")
+!unbanIps <username>|#<accountId> - removes bans matching all known account IPs from banlist (same as doing "!unban ip=<userIp>" for all IPs)
+!unlock - unlocks current battle (only if it has been locked manually with lock command)
+!unlockSpec - unlocks temporarily an autolocked battle to allow you to join as spectator
+!update [<release>] - updates SPADS according to the autoUpdateRelease setting or the release specified as parameter if present
+!version - requests versions of all SPADS components
+!vote yes|y|no|n|blank|b - votes
+!whois <username>|#<accountId>|@<ipAddress> - prints detailed account information
+********** BarManager plugin commands **********
+!balancealgorithm <algorithm> - Sets the balance algorithm used to autobalance the teams.
+!gatekeeper <restriction> - Sets the gatekeeper for this battle.
+!getlastvote [<voteNum>] - returns a vote result in json format, where param 1 returns the most recent vote result
+!maxchevlevel [rank] - sets the maximum rank allowed to become a player
+!maxratinglevel [rating] - sets the maximum skill rating allowed to become a player
+!meme <meme> - A predefined bunch of settings for meme games. It's all Rikerss' fault.
+!minchevlevel [rank] - sets the minimum rank required to become a player
+!minratinglevel [rating] - sets the minimum skill rating required to become a player
+!rename <name> - Renames the lobby to the given name.
+!resetchevlevels - removes the minimum/maximum rank requirements
+!resetratinglevels - removes the minimum/maximum skill rating requirements
+!setAllAiBonus <bonus> - Sets the economic bonus for each AI in the battle. The bonus must be between 0-100.
+!welcome-message [message] Sets the welcome message sent to anybody joining the lobby. Run this command without a message to clear the existing message. Use $$ to add a line return.
+********** InGameMute plugin commands **********
+!mute <playerName> [<duration>] [<type>] - mutes a player in game, until the end of the game or for <duration> minutes if specified
+!mutes - lists current in-game mutes
+!unmute <playerName> - unmutes a player in game
+********** ClusterManager plugin commands **********
+!clusterConfig [<clusterName>] - shows the configuration in use for a cluster, or for the cluster manager if no <clusterName> is provided
+!clusterStats - shows the current instance counts by type (public/private) and by cluster
+!clusterStatus [<clusterName>] - shows the current instance counts by type (public/private) and status (inUse/idle/offline/error) for the <clusterName> cluster, or globally if <clusterName> is not provided
+!listClusters - lists available clusters
+!listInstances [<clusterName>] - lists all the instances currently running, with detailed information, for the <clusterName> cluster or globally if <clusterName> is not provided
+!privateHost [<clusterName>] - creates a new private (password protected) SPADS instance in the <clusterName> cluster (or default cluster if <clusterName> is not provided)
+
+
+---------------------------
+$ commands
+
+$help
+Displays this help text.
+
+$whoami
+Sends back information about who you are.
+
+$whois <user>
+Sends back information about the user specified.
+
+$discord
+Allows linking of your discord account to your BAR account.
+
+$mute <username>
+Mutes that user and prevents you seeing their messages.
+
+$unmute <username>
+Un-mutes that user and allows you to see their messages.
+
+$coc <term>
+Searches the code of conduct and returns items with a textual match in them.
+
+$joinq
+Adds you to the queue to join when a space opens up, you will be automatically added to the game as a player. If already a member it has no effect.
+
+$leaveq
+Removes you from the join queue.
+
+$status
+Status info about the battle lobby.
+
+$afks
+Lists possible afk players.
+
+$password?
+Tells you the room password
+
+$splitlobby <minimum players>
+Causes a "vote" to start where other players can elect to join you in splitting the lobby, follow someone
+of their choosing or remain in place. After 60 seconds, if at least the minimum number of players agreed to split, you are moved to a new (empty) lobby and those that voted yes
+or are following someone that voted yes are also moved to that lobby.
+
+$roll <range>
+Rolls a random number based on the range format.
+- Dice format: nDs, where n is number of dice and s is sides of die. E.g. 4D6 - 4 dice with 6 sides are rolled
+- Max format: N, where N is a number and an integer between 1 and N is returned
+- Min/Max format: MN MX, where each is a number and an integer between them (inclusive) is returned
+
+
+$explain
+Lists a log of the steps taken to calculate balance for the lobby
+
+$reset-approval
+Resets the list of approved players to just the ones present at the moment (approved players are able to join even if it is locked and without needing a password). Requires boss privileges.
+
+$meme <meme>
+A predefined bunch of settings for meme games. It's all Rikerss' fault. Requires boss privileges.
+- ticks: Ticks only, don't go Cortex!
+- nodefence: No defences
+- greenfields: No metal extractors
+- rich: Infinite money
+- poor: No money generation
+- hardt1: T1 but no seaplanes or hovers either
+- crazy: Random combination of several settings
+- undo: Removes all meme effects
+
+$welcome-message <message>
+Sets the welcome message sent to anybody joining the lobby. Run this command without a message to clear the existing message. Requires boss privileges. Use $$ to add a line return.
+
+$gatekeeper <(default | friends | friendsplay | clan)>
+sets the gatekeeper for this battle. Requires boss privileges.
+> default: no limitations
+> friends allows only friends of existing members to join the lobby
+> friendsplay: allows only friends of existing players to become players (but anybody can join to spectate)
+
+$rename <new name>
+Renames the lobby to the name given. Requires boss privileges.
+
+$minratinglevel <min-level>
+Sets the minimum level for players, you must be at least this rating to be a player. Requires boss privileges.
+
+$maxratinglevel <max-level>
+Sets the maximum level for players, you must be at below this rating to be a player. Requires boss privileges.
+
+$setratinglevels <min-level> <max-level>
+Sets the minimum and maximum rating levels for players. Requires boss privileges.
+
+$resetratinglevels
+Resets the rating level limits to not exist. Requires boss privileges.
+
+$minchevlevel <min-level>
+Sets the minimum chevron level for players. Requires boss privileges. Leave number blank to reset it.
+
+$maxchevlevel <max-level>
+Sets the maximum chevron level for players. Requires boss privileges. Leave number blank to reset it.
+
+$resetchevlevels
+Resets the chevron level restrictions to not exist. Requires boss privileges.
