@@ -239,7 +239,7 @@
         matchData = filterDataByDate(data); // Filter matches by date
         populateGameTypeSelect(matchData);  // Populate game type dropdown
         displayLastMatchDate(matchData);    // Display last match date
-        document.getElementById('gameTypeSelect').selectedIndex = 4; // Update the filter
+        document.getElementById('gameTypeSelect').value="Large Team"; // Update the filter
         updateDisplay();
         if (playerData.length) {
           updateDisplay();
