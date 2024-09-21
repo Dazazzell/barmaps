@@ -211,8 +211,6 @@
       });
 
       // Hide loading message and show the table
-      document.getElementById('gameTypeSelect').value="Large Team"; // Update the filter
-      updateDisplay();
       document.getElementById('loadingMessage').style.display = 'none';
       document.getElementById('mapPlayerTable').style.display = 'table';
     }
@@ -235,6 +233,7 @@
     async function fetchData() {
       document.getElementById('loadingMessage').style.display = 'block'; // Show loading message
       document.getElementById('mapPlayerTable').style.display = 'none'; // Hide table initially
+      
       document.getElementById('lastMatchDate').style.display = 'none'; // Hide last match date initially
 
       fetchAndParseCSV('https://data-marts.beyondallreason.dev/matches.csv.gz', (data) => {
@@ -242,6 +241,7 @@
         populateGameTypeSelect(matchData);  // Populate game type dropdown
         displayLastMatchDate(matchData);    // Display last match date
         if (playerData.length) {
+          document.getElementById('gameTypeSelect').value="Large Team"; // Update the filter
           updateDisplay();
         }
         
