@@ -66,6 +66,7 @@
 
   <script>
     let matchData = [];
+    let dii=1;
     let playerData = [];
     let filteredGameType = 'all';
 
@@ -191,7 +192,8 @@
         const mapCell = document.createElement('td');
         const matchesCell = document.createElement('td');
 
-        mapCell.textContent = map;
+        mapCell.textContent = dii+`. `+map;
+        dii=dii+1;
         matchesCell.textContent = counts.totalMatches;
         matchesCell.classList.add('total-matches-column'); // Apply custom class for styling
 
@@ -254,6 +256,7 @@
     }
 
     function updateDisplay() {
+      dii=1;
       const filteredMatches = filterDataByGameType(matchData);
       const combinedData = combineData(filteredMatches, playerData);
       const { mapCounts, playerCounts } = countGamesByMap(combinedData);
