@@ -163,6 +163,7 @@
         option.textContent = gameType;
         gameTypeSelect.appendChild(option);
       });
+      document.getElementById('gameTypeSelect').value="Large Team"; // Update the filter
     }
 
     function displayTable(mapCounts, playerCounts) {
@@ -241,7 +242,6 @@
         populateGameTypeSelect(matchData);  // Populate game type dropdown
         displayLastMatchDate(matchData);    // Display last match date
         if (playerData.length) {
-          document.getElementById('gameTypeSelect').value="Large Team"; // Update the filter
           updateDisplay();
         }
         
