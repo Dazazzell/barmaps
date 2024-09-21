@@ -211,6 +211,8 @@
       });
 
       // Hide loading message and show the table
+      document.getElementById('gameTypeSelect').value="Large Team"; // Update the filter
+      updateDisplay();
       document.getElementById('loadingMessage').style.display = 'none';
       document.getElementById('mapPlayerTable').style.display = 'table';
     }
@@ -239,8 +241,6 @@
         matchData = filterDataByDate(data); // Filter matches by date
         populateGameTypeSelect(matchData);  // Populate game type dropdown
         displayLastMatchDate(matchData);    // Display last match date
-        document.getElementById('gameTypeSelect').value="Large Team"; // Update the filter
-        updateDisplay();
         if (playerData.length) {
           updateDisplay();
         }
