@@ -240,6 +240,7 @@
         populateGameTypeSelect(matchData);  // Populate game type dropdown
         displayLastMatchDate(matchData);    // Display last match date
         document.getElementById('gameTypeSelect').value="Large Team"; // Update the filter
+        updateDisplay();
         if (playerData.length) {
           updateDisplay();
         }
