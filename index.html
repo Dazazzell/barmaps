@@ -102,7 +102,7 @@ function filterPlayerDataByDate(players, filteredMatches) {
 }
 
     function filterDataByDate(data) {
-      const sixtyDaysAgo = new Date();
+      sixtyDaysAgo = new Date();
       sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
       
       return data.filter(row => {
@@ -231,7 +231,7 @@ function filterPlayerDataByDate(players, filteredMatches) {
       }, new Date(0)); // Initialize with epoch time
 
       const lastMatchDateDiv = document.getElementById('lastMatchDate');
-      lastMatchDateDiv.textContent = `Date and Time of the Last Match in Dataset: ${lastMatch.toLocaleString()}`;
+      lastMatchDateDiv.textContent = `Start ${sixtyDaysAgo.toLocaleString()} --> Last match in dataset ${lastMatch.toLocaleString()}`;
       lastMatchDateDiv.style.display = 'block'; // Show the last match date
     }
 
