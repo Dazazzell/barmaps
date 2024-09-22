@@ -270,6 +270,8 @@ function filterPlayerDataByDate(players, filteredMatches) {
       const combinedData = combineData(filteredMatches, playerData);
       const { mapCounts, playerCounts } = countGamesByMap(combinedData);
       displayTable(mapCounts, playerCounts);
+      filteredMatches=[];
+      combinedData=[];
     }
 
     document.getElementById('gameTypeSelect').addEventListener('change', function() {
