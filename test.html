@@ -54,8 +54,10 @@
     let matchData = [];
     let playerData = [];
     let filteredGameType = 'all';
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-    async function fetchAndStreamCSV(url, onRowCallback, onCompleteCallback) {
+    async function fetchAndStreamCSV(url, onRowCallback, onCompleteCallback, filterRowCallback) {
       try {
         const response = await fetch(url);
         const reader = response.body.getReader();
@@ -74,7 +76,8 @@
             dynamicTyping: true,
             skipEmptyLines: true,
             chunk: (results) => {
-              onRowCallback(results.data);
+              const filteredData = results.data.filter(filterRowCallback);  // Filter while parsing
+              onRowCallback(filteredData);
             },
             error: (error) => console.error('Error parsing CSV:', error)
           });
@@ -88,10 +91,9 @@
       }
     }
 
-    function filterDataByDate(data) {
-      const sixtyDaysAgo = new Date();
-      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-      return data.filter(row => new Date(row.start_time) >= sixtyDaysAgo);
+    function filterRecentMatches(row) {
+      // Keep only matches within the last 60 days
+      return new Date(row.start_time) >= sixtyDaysAgo;
     }
 
     function filterDataByGameType(data) {
@@ -189,20 +191,20 @@
       document.getElementById('loadingMessage').style.display = 'block';
 
       fetchAndStreamCSV('https://data-marts.beyondallreason.dev/matches.csv.gz', (data) => {
-        matchData = [...matchData, ...filterDataByDate(data)]; // Accumulate data from streamed chunks
+        matchData = [...matchData, ...data]; // Accumulate only the filtered data from chunks
         populateGameTypeSelect(matchData);
         displayLastMatchDate(matchData);
         if (playerData.length) updateDisplay();
       }, () => {
         if (playerData.length) updateDisplay();
-      });
+      }, filterRecentMatches);
 
       fetchAndStreamCSV('https://data-marts.beyondallreason.dev/match_players.csv.gz', (data) => {
-        playerData = [...playerData, ...data];
+        playerData = [...playerData, ...data]; // No filtering needed for players, but still processed in chunks
         if (matchData.length) updateDisplay();
       }, () => {
         if (matchData.length) updateDisplay();
-      });
+      }, () => true); // No filter for player data
     }
 
     function updateDisplay() {
