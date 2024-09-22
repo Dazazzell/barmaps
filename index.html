@@ -96,6 +96,11 @@
       }
     }
 
+function filterPlayerDataByDate(players, filteredMatches) {
+  const matchIds = new Set(filteredMatches.map(match => match.match_id));
+  return players.filter(player => matchIds.has(player.match_id));
+}
+
     function filterDataByDate(data) {
       const sixtyDaysAgo = new Date();
       sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
@@ -251,11 +256,12 @@
       });
 
       fetchAndParseCSV('https://data-marts.beyondallreason.dev/match_players.csv.gz', (data) => {
-        playerData = data;
+        playerData = filterPlayerDataByDate(data, matchData);
         if (matchData.length) {
           updateDisplay();
         }
       });
+      data=[];
     }
 
     function updateDisplay() {
