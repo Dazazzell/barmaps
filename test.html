@@ -55,17 +55,34 @@
     let playerData = [];
     let filteredGameType = 'all';
 
-    async function fetchAndParseCSV(url, callback) {
+    async function fetchAndStreamCSV(url, onRowCallback, onCompleteCallback) {
       try {
         const response = await fetch(url);
-        const arrayBuffer = await response.arrayBuffer();
-        const decompressed = pako.ungzip(new Uint8Array(arrayBuffer), { to: 'string' });
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let decompressed = '';
 
-        Papa.parse(decompressed, {
-          header: true,
-          complete: (result) => callback(result.data),
-          error: (error) => console.error('Error parsing CSV:', error)
-        });
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = pako.ungzip(value);  // Decompressing the chunk
+          decompressed += decoder.decode(chunk, { stream: true }); // Convert binary to text
+
+          const parsed = Papa.parse(decompressed, {
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+            chunk: (results) => {
+              onRowCallback(results.data);
+            },
+            error: (error) => console.error('Error parsing CSV:', error)
+          });
+
+          decompressed = parsed.meta.unparsed || '';
+        }
+
+        onCompleteCallback();
       } catch (error) {
         console.error('Error fetching or processing data:', error);
       }
@@ -157,18 +174,33 @@
       document.getElementById('mapPlayerTable').style.display = 'table';
     }
 
+    function displayLastMatchDate(matches) {
+      const lastMatch = matches.reduce((latest, match) => {
+        const matchDate = new Date(match.start_time);
+        return matchDate > latest ? matchDate : latest;
+      }, new Date(0));
+
+      const lastMatchDateDiv = document.getElementById('lastMatchDate');
+      lastMatchDateDiv.textContent = `Date and Time of the Last Match in Dataset: ${lastMatch.toLocaleString()}`;
+      lastMatchDateDiv.style.display = 'block';
+    }
+
     async function fetchData() {
       document.getElementById('loadingMessage').style.display = 'block';
 
-      fetchAndParseCSV('https://data-marts.beyondallreason.dev/matches.csv.gz', (data) => {
-        matchData = filterDataByDate(data);
+      fetchAndStreamCSV('https://data-marts.beyondallreason.dev/matches.csv.gz', (data) => {
+        matchData = [...matchData, ...filterDataByDate(data)]; // Accumulate data from streamed chunks
         populateGameTypeSelect(matchData);
         displayLastMatchDate(matchData);
         if (playerData.length) updateDisplay();
+      }, () => {
+        if (playerData.length) updateDisplay();
       });
 
-      fetchAndParseCSV('https://data-marts.beyondallreason.dev/match_players.csv.gz', (data) => {
-        playerData = data;
+      fetchAndStreamCSV('https://data-marts.beyondallreason.dev/match_players.csv.gz', (data) => {
+        playerData = [...playerData, ...data];
+        if (matchData.length) updateDisplay();
+      }, () => {
         if (matchData.length) updateDisplay();
       });
     }
