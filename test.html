@@ -95,9 +95,15 @@
 
       data.forEach(row => {
         const gameDate = new Date(row.start_time);
+        const map = row.map;
+
+        // Try to parse player count, fallback to 0 if not valid
+        let playerCount = parseInt(row.player_count, 10);
+        if (isNaN(playerCount) || playerCount <= 0) {
+          playerCount = 0;  // Handle missing or invalid player counts
+        }
+
         if (gameDate >= sixtyDaysAgo) {
-          const map = row.map;
-          const playerCount = parseInt(row.player_count, 10);  // Assuming player_count exists
           playerCounts.add(playerCount);  // Track distinct player counts
 
           if (!mapCounts[map]) {
@@ -131,7 +137,7 @@
       tableHead.innerHTML = `<tr>
         <th>Map</th>
         <th class="total-matches-column">Number of Matches</th>
-        ${playerCounts.map(count => `<th>Games with ${count} Players</th>`).join('')}
+        ${playerCounts.map(count => `<th>Games with ${count === 0 ? 'Unknown' : count} Players</th>`).join('')}
       </tr>`;
 
       tableBody.innerHTML = '';  // Clear any existing rows
