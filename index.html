@@ -83,6 +83,19 @@
         Papa.parse(decompressed, {
           header: true,
           complete: (result) => {
+            console.log(url+' CSV parsing completed.');
+            
+            result.data.forEach(item =>{
+              for (const key in item) {
+                if (key !== 'match_id' && key !== 'start_time' && key !== 'map' && key !== 'user_id' && key !== 'game_type') {
+                delete item[key]; 
+              }
+              }
+            });
+          
+            console.log(result.data.length);
+            const first10Rows = result.data.slice(0, 10); // Get the first 10 rows
+            console.table(first10Rows); // Optional: log in a tabular format
             callback(result.data);
           },
           error: (error) => {
