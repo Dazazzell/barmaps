@@ -68,7 +68,7 @@
 
     let filteredGameType = 'all';
 
-    async function fetchAndParseCSV(url, callback) {
+    async function fetchAndParseCSV1(url, callback) {
       try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -107,7 +107,50 @@
              // Adding a new property 'testColumn' with a value (you can modify this as needed)
               return { ...row, count_column: 0 };
               });
-            const first10Rows = result.data.slice(0, 10); // Get the first 10 rows
+            console.table(data); // Optional: log in a tabular format
+            callback(result.data);
+          },
+          error: (error) => {
+            console.error('Error parsing CSV:', error);
+            document.body.insertAdjacentHTML('beforeend', `<p>Error parsing CSV: ${error.message}</p>`);
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching or processing data:', error);
+        document.body.insertAdjacentHTML('beforeend', `<p>Error fetching or processing data: ${error.message}</p>`);
+      }
+    }
+    
+        async function fetchAndParseCSV2(url, callback) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const decompressed = pako.ungzip(new Uint8Array(arrayBuffer), { to: 'string' });
+
+        Papa.parse(decompressed, {
+          header: true,
+          complete: (result) => {
+            console.log(url + ' CSV parsing completed.');
+
+
+            // Clean up the data to keep only necessary fields
+            result.data.forEach(item => {
+              for (const key in item) {
+                if (key !=='user_id' && key !== 'match_id') {
+                  delete item[key]; 
+                }
+              }
+            });
+          
+            console.log(result.data.length);
+            const data = result.data.map(row => {
+             // Adding a new property 'testColumn' with a value (you can modify this as needed)
+              return { ...row, count_column: 0 };
+              });
             console.table(data); // Optional: log in a tabular format
             callback(result.data);
           },
@@ -126,7 +169,12 @@
     document.getElementById('mapPlayerTable').style.display = 'none'; // Hide table initially
     document.getElementById('lastMatchDate').style.display = 'none'; // Hide last match date initially
 
-    fetchAndParseCSV('https://data-marts.beyondallreason.dev/matches.csv.gz', (data) => {
+    fetchAndParseCSV1('https://data-marts.beyondallreason.dev/matches.csv.gz', (data) => {
+      matchData = data; // Store the filtered match data
+      // TODO: Implement logic to populate the table with match data
+    });
+    
+       fetchAndParseCSV2('https://data-marts.beyondallreason.dev/match_players.csv.gz', (data) => {
       matchData = data; // Store the filtered match data
       // TODO: Implement logic to populate the table with match data
     });
