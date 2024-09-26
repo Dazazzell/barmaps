@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beyond All Reason - Map Popularity Stats for the Last 60 Days</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .loading-message {
+      font-size: 1.2em;
+      color: #555;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .filter-section {
+      margin-bottom: 20px;
+    }
+    .total-matches-column {
+      background-color: #ffeeba;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Beyond All Reason - Map Popularity Stats for the Last 60 Days</h1>
+  <div><a href=https://github.com/Dazazzell/barmaps/>https://github.com/Dazazzell/barmaps/</a><br></div>
+  <div><a href=lobbycommands.html>BAR Lobby commands dump</a><br></div>
+  <div>----<br></div>
+  <div>&nbsp;<br></div>
+  <div class="filter-section">
+    <label for="gameTypeSelect">Filter by Game Type:</label>
+    <select id="gameTypeSelect">
+      <option value="all" selected>All Game Types</option>
+    </select>
+  </div>
+
+  <div id="loadingMessage" class="loading-message">Slowly loading and processing data, please wait. Not mobile friendly.</div>
+
+  <div id="lastMatchDate" class="loading-message" style="display: none;"></div>
+  
+  <table id="mapPlayerTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>Map</th>
+        <th class="total-matches-column">Number of Matches</th>
+        <!-- Player count columns will be added dynamically -->
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data rows will be inserted here -->
+    </tbody>
+  </table>
+
+  <script>
+
+    let filteredGameType = 'all';
+
+    async function fetchAndParseCSV(url, callback) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const decompressed = pako.ungzip(new Uint8Array(arrayBuffer), { to: 'string' });
+
+        Papa.parse(decompressed, {
+          header: true,
+          complete: (result) => {
+            console.log(url + ' CSV parsing completed.');
+            
+            const now = new Date();
+            const sixtyDaysAgo = new Date(now);
+            sixtyDaysAgo.setDate(now.getDate() - 60); // Calculate the date 60 days ago
+
+            // Filter matches to keep only those from the last 60 days
+            result.data = result.data.filter(item => {
+              const matchDate = new Date(item.start_time);
+              return matchDate >= sixtyDaysAgo;
+            });
+
+            // Clean up the data to keep only necessary fields
+            result.data.forEach(item => {
+              for (const key in item) {
+                if (key !== 'match_id' && key !== 'start_time' && key !== 'map' && key !== 'game_type') {
+                  delete item[key]; 
+                }
+              }
+            });
+          
+            console.log(result.data.length);
+            const data = result.data.map(row => {
+             // Adding a new property 'testColumn' with a value (you can modify this as needed)
+              return { ...row, count_column: 0 };
+              });
+            const first10Rows = result.data.slice(0, 10); // Get the first 10 rows
+            console.table(data); // Optional: log in a tabular format
+            callback(result.data);
+          },
+          error: (error) => {
+            console.error('Error parsing CSV:', error);
+            document.body.insertAdjacentHTML('beforeend', `<p>Error parsing CSV: ${error.message}</p>`);
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching or processing data:', error);
+        document.body.insertAdjacentHTML('beforeend', `<p>Error fetching or processing data: ${error.message}</p>`);
+      }
+    }
+
+    document.getElementById('loadingMessage').style.display = 'block'; // Show loading message
+    document.getElementById('mapPlayerTable').style.display = 'none'; // Hide table initially
+    document.getElementById('lastMatchDate').style.display = 'none'; // Hide last match date initially
+
+    fetchAndParseCSV('https://data-marts.beyondallreason.dev/matches.csv.gz', (data) => {
+      matchData = data; // Store the filtered match data
+      // TODO: Implement logic to populate the table with match data
+    });
+  </script>
+</body>
+</html>
