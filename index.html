@@ -84,13 +84,19 @@
           header: true,
           complete: (result) => {
             console.log(url+' CSV parsing completed.');
-            
+            const firstMatchId = getFirstMatchIdInLast60Days(data);
             result.data.forEach(item =>{
               for (const key in item) {
                 if (key !== 'match_id' && key !== 'start_time' && key !== 'map' && key !== 'user_id' && key !== 'game_type') {
                 delete item[key]; 
               }
               }
+                for (const match_id in item) {
+                if (match_id<firstMatchId) {
+                delete item; 
+              }
+              }
+              
             });
           
             console.log(result.data.length);
@@ -108,6 +114,25 @@
         document.body.insertAdjacentHTML('beforeend', `<p>Error fetching or processing data: ${error.message}</p>`);
       }
     }
+
+function getFirstMatchIdInLast60Days(data) {
+  const sixtyDaysAgo = new Date();
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+  // Filter the data to only include matches within the last 60 days
+  const filteredData = data.filter(row => {
+    const gameDate = new Date(row.start_time);
+    return gameDate >= sixtyDaysAgo;
+  });
+
+  // Use reduce to find the match with the earliest start_time
+  const firstMatch = filteredData.reduce((earliest, match) => {
+    const matchDate = new Date(match.start_time);
+    return matchDate < new Date(earliest.start_time) ? match : earliest;
+  }, filteredData[0]); // Initialize with the first match in the filtered data
+
+  return firstMatch ? firstMatch.match_id : null;
+}
 
 function filterPlayerDataByDate(players, filteredMatches) {
   const matchIds = new Set(filteredMatches.map(match => match.match_id));
@@ -242,6 +267,8 @@ function filterPlayerDataByDate(players, filteredMatches) {
         const matchDate = new Date(match.start_time);
         return matchDate > latest ? matchDate : latest;
       }, new Date(0)); // Initialize with epoch time
+      
+     
 
       const lastMatchDateDiv = document.getElementById('lastMatchDate');
       lastMatchDateDiv.textContent = `Start ${sixtyDaysAgo.toLocaleString()} --> Last match in dataset ${lastMatch.toLocaleString()}`;
